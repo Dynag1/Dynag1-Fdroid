@@ -50,6 +50,8 @@ jobs:
             echo "repo_keyalias: scrybook-key" >> config.yml
             echo "keystorepass: G22rtp12" >> config.yml
             echo "keypass: G22rtp12" >> config.yml
+            echo "repo_name: Dynag" >> config.yml
+            echo "repo_description: Magasin F-Droid officiel par Dynag." >> config.yml
           fi
           
           # Génération de l'index
