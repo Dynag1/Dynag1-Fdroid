@@ -1,6 +1,74 @@
-name: Build Store
+
+
+name: Build Central F-Droid Store Pages
+
 on:
   push:
-      branches: [main]
-        workflow_dispatch:
-        
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build_repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup F-Droid Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fdroidserver
+
+      - name: Prepare F-Droid Repo
+        env:
+          KEYSTORE: ${{ secrets.REPO_KEYSTORE }}
+        run: |
+          mkdir -p fdroid/repo
+          mkdir -p public/fdroid
+          
+          # Copie des APKs et métadonnées poussés par vos différentes applications
+          cp -r apks/*/* fdroid/repo/ 2>/dev/null || true
+          cp -r metadata/* fdroid/repo/ 2>/dev/null || true
+          
+          cd fdroid
+          fdroid init -d repo
+          
+          # Configuration de la clé de signature si elle est présente
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > keystore.p12
+            # Mise à jour de config.yml avec les informations de ta clé
+            echo "repo_keyalias: scrybook-key" >> config.yml
+            echo "keystorepass: G22rtp12" >> config.yml
+            echo "keypass: G22rtp12" >> config.yml
+          fi
+          
+          # Génération de l'index
+          fdroid update -c
+          
+          # Copie vers le répertoire de déploiement des Pages
+          cp -r repo ../public/fdroid/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+
+  deploy:
+    needs: build_repo
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
