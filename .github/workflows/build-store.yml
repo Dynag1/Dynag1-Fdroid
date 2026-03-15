@@ -37,7 +37,11 @@ jobs:
           cp -r metadata/* fdroid/repo/ 2>/dev/null || true
           
           cd fdroid
-          fdroid init -d repo
+          
+          # Initialisation uniquement si config.yml n'existe pas 🛠️
+          if [ ! -f config.yml ]; then
+            fdroid init -d repo
+          fi
           
           # Configuration de la clé de signature si elle est présente
           if [ -n "$KEYSTORE" ]; then
