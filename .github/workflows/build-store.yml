@@ -34,7 +34,8 @@ jobs:
           
           # Copie des APKs et métadonnées poussés par vos différentes applications
           cp -r apks/*/* fdroid/repo/ 2>/dev/null || true
-          cp -r metadata/* fdroid/repo/ 2>/dev/null || true
+          mkdir -p fdroid/metadata
+          cp -r metadata/* fdroid/metadata/ 2>/dev/null || true
           
           cd fdroid
           
